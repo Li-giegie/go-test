@@ -9,7 +9,7 @@ import (
 type Test struct {
 	wait sync.WaitGroup
 	num int
-	fun func()
+	fun func(index int)
 	startTime time.Time
 	endTime time.Time
 }
@@ -21,7 +21,7 @@ type Result struct {
 	AvgTime time.Duration
 }
 
-func NewResult(num int,startTime,endTime time.Time) *Result  {
+func newResult(num int,startTime,endTime time.Time) *Result  {
 	var res = new(Result)
 	res.num = num
 	res.StartTime = startTime
@@ -40,7 +40,7 @@ func (r *Result) Debug()  {
 	fmt.Println(r.String())
 }
 
-func NewTest(num int,f func(),isSync ...bool) *Test {
+func NewTest(num int,f func(index int),isSync ...bool) *Test {
 	return &Test{
 		wait:      sync.WaitGroup{},
 		num:       num,
@@ -51,11 +51,11 @@ func NewTest(num int,f func(),isSync ...bool) *Test {
 func (t *Test) Sync() *Result  {
 	t.startTime = time.Now()
 	for i:=0;i<t.num;i++{
-		t.fun()
+		t.fun(i)
 	}
 	t.endTime = time.Now()
 
-	return NewResult(t.num,t.startTime,t.endTime)
+	return newResult(t.num,t.startTime,t.endTime)
 }
 
 func (t *Test) Async() *Result {
@@ -63,12 +63,12 @@ func (t *Test) Async() *Result {
 	t.startTime = time.Now()
 	for i:=0;i<t.num;i++{
 		go func() {
-			t.fun()
+			t.fun(i)
 			t.wait.Done()
 		}()
 	}
 	t.wait.Wait()
 	t.endTime = time.Now()
 
-	return NewResult(t.num,t.startTime,t.endTime)
+	return newResult(t.num,t.startTime,t.endTime)
 }
